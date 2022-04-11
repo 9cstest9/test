@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  File: README
+  
+    &mdash; Documentation by YARD 0.9.27
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "";
+  relpath = '';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="file_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="_index.html">Index</a> &raquo; 
+    <span class="title">File: README</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="puppet_class_list_link"
+        href="puppet_class_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><div id='filecontents'><h1 id="falcon">falcon</h1>
+<p>## Table of Contents</p>
+
+<ol>
+  <li><a href="#description">Description</a></li>
+  <li><a href="#usage">Usage - Configuration options and additional functionality</a></li>
+  <li><a href="#limitations">Limitations - OS compatibility, etc.</a></li>
+  <li><a href="#api-vs-local-install-methods"><code>api</code> vs <code>local</code> install methods</a></li>
+  <li><a href="#development">Development - Guide for contributing to the module</a></li>
+  <li><a href="#license">License</a></li>
+</ol>
+
+<h2 id="description">Description</h2>
+
+<p>The <code>falcon</code> modules install, configures, and manges the <code>falcon</code> service across multiple operating systems and distributions.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: <code>puppet-falcon</code> is an open source project, not a CrowdStrike product. As such, it carries no formal support, expressed or implied.</p>
+</blockquote>
+
+<h1 id="usage">Usage</h1>
+
+<p>All parameters for the falcon module are contained within the main <code>falcon</code> class. There are many options that will modify what the module does. Refer to <a href="./REFERENCE.md">REFERENCE.md</a> for more details.</p>
+
+<p>Below are some of the common use cases.</p>
+
+<blockquote>
+  <p><strong>Note</strong>: <code>falcon</code> packages are not public so this module has two options for installing the falcon sensor. Using the <code>install_method</code> parameter you can choose <code>api</code> or <code>local</code>. <code>api</code> is the default. More information is outline in <a href="#api-vs-local-install-methods">API vs Local install methods</a>.</p>
+</blockquote>
+
+<h3 id="basic-install-configure-and-manage-the-service">Basic Install, Configure, and Manage the service</h3>
+
+<p>``` puppet
+# using the <code>api</code> method</p>
+
+<p>class {‘falcon’:
+  client_id     =&gt; Sensitive(‘12346’),
+  client_secret =&gt; Sensitive(‘12345’)
+}
+```</p>
+
+<p>``` puppet
+# using the <code>local</code> method</p>
+
+<p>$package_options = {
+  ‘ensure’ =&gt; ‘present’,
+  ‘source’ =&gt; ‘/tmp/sensor.rpm’
+  # any other attributes that are valid for the package resource
+}</p>
+
+<p>class {‘falcon’: 
+  install_method  =&gt; ‘local’,
+  package_options =&gt; $package_options
+}
+```</p>
+
+<hr />
+
+<h3 id="using-the-api-install-method">Using the <code>api</code> install method</h3>
+
+<p>The  <code>api</code> install methods uses the API to download the sensor package, and the module infers the <code>package</code> parameters required to install the sensor.</p>
+
+<p>The drawbacks to using the <code>api</code> install method are outlined in <a href="#api-vs-local-install-methods">API vs Local install methods</a>.</p>
+
+<p>There are three paramters that alter the behavior of the <code>api</code> install method.</p>
+
+<ul>
+  <li><code>version</code> - It will download the sensor package matching the version you specify.</li>
+  <li><code>update_policy</code> - It will download the version specified by the update policy.</li>
+  <li><code>version_decrement</code> - It will download the <code>n</code>th version before the current version.</li>
+</ul>
+
+<p>Examples for each are below.
+<strong>Using the <code>version</code> parameter</strong></p>
+
+<p>This takes precedence over <code>update_policy</code> and <code>version_decrement</code>.</p>
+
+<p><code>puppet
+class { 'falcon':
+  client_id     =&gt; Sensitive('12346'),
+  client_secret =&gt; Sensitive('12345'),
+  version       =&gt; '1.0.0'
+}
+</code></p>
+
+<p><strong>Using the <code>update_policy</code> parameter</strong></p>
+
+<p>This takes precedence over the <code>version_decrement</code> parameter.</p>
+
+<p><code>puppet
+class { 'falcon':
+  client_id     =&gt; Sensitive('12346'),
+  client_secret =&gt; Sensitive('12345'),
+  update_policy =&gt; 'platform_default'
+}
+</code></p>
+
+<p><strong>Using the <code>version_decrement</code> parameter</strong></p>
+
+<p>Use <code>version_decrement</code> to download the <code>n-x</code> version.</p>
+
+<p>A value of <code>0</code> will download the latest version, and a value of <code>2</code> will download the <code>n-2</code> version (<code>2</code> releases behind latest).</p>
+
+<p><code>puppet
+class { 'falcon':
+  client_id         =&gt; Sensitive('12346'),
+  client_secret     =&gt; Sensitive('12345'),
+  version_decrement =&gt; 2
+}
+</code></p>
+
+<hr />
+<p>### Using the <code>local</code> install method</p>
+
+<p>The <code>local</code> install method gives you full control on how the sensor is installed.</p>
+
+<p>Some reasons you may use this method are:
+  - You want to install the sensor from a local file
+  - You have your own package management system</p>
+
+<p>You can learn more about the <code>local</code> install method in <a href="#api-vs-local-install-methods">API vs Local install methods</a>.</p>
+
+<p>When you use the <code>local</code> install method, <code>package_options</code> is required. Parameters in <code>package_options</code> are passed to the the <code>package</code> resource. You must provide any required paramaters for the <code>package</code> resource except the <code>name</code> parameter. The module will pick the appopriate name based on the operating system. You can still override the name by specifying the <code>name</code> property in the <code>package_options</code> hash.</p>
+
+<p>``` puppet
+# Using a local file</p>
+
+<p>file {‘/tmp/sensor.rpm’:
+  ensure =&gt; ‘present’,
+  source =&gt; ‘https://company-filer-server.com/sensor.rpm’
+}</p>
+
+<p>class {‘falcon’:
+  install_method =&gt; ‘local’,
+  package_options =&gt; {
+    ‘ensure’ =&gt; ‘present’,
+    ‘source’ =&gt; ‘/tmp/sensor.rpm’
+  },
+  require =&gt; File[‘/tmp/sensor.rpm’]
+}
+```</p>
+
+<p>``` puppet
+# Using a http source</p>
+
+<p>class {‘falcon’:
+  install_method =&gt; ‘local’,
+  package_options =&gt; {
+    ‘ensure’ =&gt; ‘present’,
+    ‘source’ =&gt; ‘http://example.com/sensor.rpm’
+  }
+}
+```</p>
+
+<p>``` puppet
+# Overriding the name parameter</p>
+
+<p>class {‘falcon’:
+  install_method =&gt; ‘local’,
+  package_options =&gt; {
+    ‘ensure’ =&gt; ‘present’,
+    ‘source’ =&gt; ‘/tmp/sensor.rpm’,
+    ‘name’   =&gt; ‘falcon-sensor’
+  }
+}
+```</p>
+
+<hr />
+
+<h3 id="removing-the-installer-file">Removing the Installer file</h3>
+
+<p>When <code>install_method</code> is <code>api</code> you can use the <code>cleanup_installer</code> parameter to remove the installer file after installation.</p>
+
+<p><code>puppet
+class { 'falcon':
+  client_id         =&gt; Sensitive('12346'),
+  client_secret     =&gt; Sensitive('12345'),
+  cleanup_installer =&gt; true
+}
+</code></p>
+
+<hr />
+
+<h3 id="overriding-the-default-package-parameters">Overriding the default Package parameters</h3>
+
+<p>You can override any parameter that is passed to the <code>package</code> resource using the <code>package_options</code> parameter. <a href="https://puppet.com/docs/puppet/7/types/package.html">Valid Package Parameters</a></p>
+
+<p>This works the same in both <code>api</code> and <code>local</code> install methods.</p>
+
+<p>``` puppet
+$package_options = {
+  ‘provider’ =&gt; ‘rpm’,
+  ‘install_options’ =&gt; ‘–force’,
+}</p>
+
+<p>class { ‘falcon’:
+  package_options =&gt; $package_options
+}
+```</p>
+
+<hr />
+
+<h3 id="opt-out-of-the-module-installing-the-package">Opt out of the module installing the package</h3>
+<p><code>puppet
+class {'falcon':
+  package_manage =&gt; false
+  # ... other required params
+}
+</code></p>
+
+<hr />
+
+<h3 id="opt-out-of-the-module-configuring-the-agent">Opt out of the module configuring the agent</h3>
+<p><code>puppet
+class {'falcon':
+  config_manage =&gt; false
+  # ... other required params
+}
+</code></p>
+
+<hr />
+
+<h3 id="opt-out-of-the-module-controlling-the-service">Opt out of the module controlling the service</h3>
+<p><code>puppet
+class {'falcon':
+  service_manage =&gt; false
+  # ... other required params
+}
+</code></p>
+
+<hr />
+
+<h3 id="registering-a-cid">Registering a <code>cid</code></h3>
+
+<p><code>puppet
+class {'falcon':
+  cid =&gt; 'AJKQUI123JFKSDFJK`
+  # ... other required params
+}
+</code></p>
+
+<hr />
+
+<h3 id="registering-a-cid-with-a-provisioning-token">Registering a <code>cid</code> with a provisioning token</h3>
+
+<p>If your company requires a preovisioning token to register a agent, you can use the <code>provisioning_token</code> parameter.</p>
+
+<p><code>puppet
+class {'falcon':
+  cid                =&gt; 'AJKQUI123JFKSDFJK`
+  provisioning_token =&gt; '1234567890'
+  # ... other required params
+}
+</code></p>
+
+<hr />
+
+<h3 id="pinning-the-agent-version">Pinning the agent version</h3>
+
+<p>If you want to pin the agent version to a specific version using the <code>api</code> install method then you can set <code>version_manage</code> to true.</p>
+
+<p>The below example will consult the API to determine what version the <code>version_decrement</code> with the value of <code>2</code> resolves to. It then will download that version and ensure it is installed.</p>
+
+<p>Each subsequent run it will check the api to see if the version returned is the one installed. If for example, a new version is released it would cause the version returned from the check to change causing the agent to be upgraded to the new <code>n-2</code> version.</p>
+
+<blockquote>
+  <p><strong>warning</strong>: This causes the module to consult the API every run to ensure the version the API returns is the version that is installed. This could cause rate limit issues for large deployments. If you want to have automate upgrades/downgrades and use the <code>api</code> install method it is generally suggested set <code>version_manage</code> to <code>false</code> and allow the CrowdStrike Update Policy do the upgrades/downgrades instead of Puppet.</p>
+</blockquote>
+
+<p><code>puppet
+class {'falcon':
+  version_manage =&gt; true
+  client_id      =&gt; Sensitive('12346'),
+  client_secret  =&gt; Sensitive('12345'),
+  update_policy  =&gt; 'platform_default'
+  # ... other required params
+}
+</code></p>
+
+<p>Using the <code>install_method</code> of <code>local</code></p>
+
+<p><code>puppet
+class {'falcon':
+  install_method =&gt; 'local',
+  package_options =&gt; {
+    'ensure' =&gt; '32.4.3',
+    'source' =&gt; '/tmp/sensor-32.4.3.rpm'
+  }
+}
+</code></p>
+
+<hr />
+<p>## <code>api</code> vs <code>local</code> install methods</p>
+
+<p>Generally the <code>api</code> method will be fine for most use cases if <code>version_manage</code> is set to <code>false</code>. If <code>version_manage</code> is set to <code>true</code> you may run into api rate limits.</p>
+
+<p>You can use <code>local</code> install method if you want full control and don’t want to leverage the API.</p>
+
+<hr />
+
+<h3 id="why-are-there-two-install-methods">Why are there two install methods?</h3>
+
+<p>Generally Puppet modules that manage a package control the full lifecycle of that package from installation to removal. The fact CrowdStrike agent packages are not public makes this hard.</p>
+
+<p>We still wanted to give a hands off way of quickly getting a package installed so we created the <code>api</code> install method. This method will require you to provide api credentials, and then we will download the correct package version from the CrowdStrike API. There are paramaters that let you control the behavior like setting <code>update_policy</code>. This will cause the module to download the correct version based on what the update policy suggests. <a href="#using-the-api-install-method">Examples of each here</a>.</p>
+
+<p>However, this method might not be suitable for everyone so the <code>local</code> install method was created that gives you full control on how the sensor is installed.</p>
+
+<hr />
+
+<h3 id="how-the-api-install-method-works">How the <code>api</code> install method works</h3>
+
+<p>The api install method will use the falcon api to download the correct package version. The correct package version depends on what parameters you provide. You can see <a href="#using-the-api-install-method">Examples of each here</a>.</p>
+
+<p>The firt run will cause Puppet to call the approriate CrowdStrike apis to get the information needed to download the sensor package. It will then download the sensor package. Normal puppet resources then take over.</p>
+
+<p>If you set <code>version_manage</code> to <code>true</code> every run will cause the module to consult the CrowdStrike API to get the appropriate package version. Then it will determine if the installed version is the same as the returned version. If they are not the same, then it will download the correct package version and do the appropriate install/update/downgrade actions.</p>
+
+<p>If you set <code>version_manage</code> to <code>false</code> then api calls will only happen when the CrowdStrike sensor is not installed.</p>
+
+<hr />
+
+<h3 id="api-rate-limits">API rate limits</h3>
+
+<p>The main limitation of the <code>api</code> install method is api rate limits. We haven’t hit them ourselves, but it may be possible for large installations to hit a rate limit when using the <code>api</code> install method with <code>version_manage</code> set to <code>true</code>.</p>
+
+<p>Each time Puppet compiles a catalog for a node it uses the API to determine what version of the agent should be installed. If the agent is already on the correct version then no futher apis calls are made.</p>
+
+<p>Setting <code>version_manage</code> to <code>false</code> will prevent any api calls unless the agent is not installed.</p>
+
+<hr />
+<p>### Reducing API calls</p>
+
+<p>The best way to reduce API calls is to set <code>version_manage</code> to <code>false</code>. This will ensure the only time the API is called is when the agent is not installed. This should prevent API rate limit issues.</p>
+
+<h2 id="development">Development</h2>
+
+<p>If you want to develop new content or improve on this collection, please open an issue or create a pull request. All contributions are welcome!</p>
+
+<h2 id="license">License</h2>
+
+<p>See the <a href="LICENSE">LICENSE</a> for more information.</p>
+</div></div>
+
+      <div id="footer">
+     Generated by <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>.
+</div>
+
+    </div>
+  </body>
+</html>
