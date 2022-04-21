@@ -2,7 +2,7 @@ import argparse
 import yaml
 import json
 
-
+print('test123')
 parser = argparse.ArgumentParser(
     description='Generate a Github Actions matrix from a provision.yaml file.')
 
